@@ -65,6 +65,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Server Files Migration to API Library (January 2025)
+- **Date**: January 5, 2025  
+- **Change**: Moved all server logic from `/server/` to `/api/_lib/` for Vercel compatibility
+- **Details**:
+  - Converted TypeScript files to JavaScript for serverless function compatibility
+  - Moved `db.ts`, `storage.ts`, `phoneAuth.ts`, `replitAuth.ts` to `/api/_lib/` as `.js` files
+  - Updated all 18+ serverless functions to import from `_lib/` instead of `../../server/`
+  - Express routes updated to import from `../api/_lib/` maintaining local development compatibility
+  - Maintained dual architecture: Express for development, serverless functions for production
+- **Impact**: Single source of truth for business logic, compatible with both local Express and Vercel serverless deployment
+
 ### Replit Migration Complete (January 2025)
 - **Date**: January 5, 2025
 - **Change**: Successfully migrated project from Replit Agent to Replit environment

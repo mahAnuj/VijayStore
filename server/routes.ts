@@ -1,12 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "../api/_lib/storage";
 import { insertProductSchema, insertOrderSchema, insertInquirySchema, insertCustomerProfileSchema, insertCustomerAddressSchema } from "@shared/schema";
 import path from "path";
 import { existsSync } from "fs";
 import Razorpay from "razorpay";
-import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
-import { sendOTP, verifyOTP, isPhoneAuthenticated, isPhoneAdmin } from "./phoneAuth";
+import { setupAuth, isAuthenticated, isAdmin } from "../api/_lib/replitAuth";
+import { sendOTP, verifyOTP, isPhoneAuthenticated, isPhoneAdmin } from "../api/_lib/phoneAuth";
 
 // Razorpay is optional - if keys are not provided, payment route will return an error
 const razorpay = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET 

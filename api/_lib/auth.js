@@ -1,5 +1,5 @@
 // Shared authentication utilities for Vercel serverless functions
-import { storage } from '../../server/storage.js';
+import { storage } from './storage.js';
 import { sessionManager } from './session.js';
 
 // Phone authentication check

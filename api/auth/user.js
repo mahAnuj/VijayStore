@@ -1,4 +1,4 @@
-import { storage } from '../../server/storage.js';
+import { storage } from '../_lib/storage.js';
 import { sessionManager } from '../_lib/session.js';
 
 export default async function handler(req, res) {

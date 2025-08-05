@@ -1,4 +1,4 @@
-import { verifyOTP } from '../../server/phoneAuth.js';
+import { verifyOTP } from '../_lib/phoneAuth.js';
 import { sessionManager, setSessionCookie } from '../_lib/session.js';
 
 export default async function handler(req, res) {

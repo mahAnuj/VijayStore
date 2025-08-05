@@ -1,4 +1,4 @@
-import { storage } from '../../server/storage.js';
+import { storage } from '../_lib/storage.js';
 import { insertOrderSchema } from '../../shared/schema.js';
 import { withAdminAuth, isPhoneAuthenticated } from '../_lib/auth.js';
 

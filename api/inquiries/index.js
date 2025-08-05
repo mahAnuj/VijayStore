@@ -1,4 +1,4 @@
-import { storage } from '../../server/storage.js';
+import { storage } from '../_lib/storage.js';
 import { insertInquirySchema } from '../../shared/schema.js';
 import { withAdminAuth } from '../_lib/auth.js';
 

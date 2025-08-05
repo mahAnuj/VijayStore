@@ -1,4 +1,4 @@
-import { storage } from '../../server/storage.js';
+import { storage } from '../_lib/storage.js';
 import { insertCustomerAddressSchema } from '../../shared/schema.js';
 import { withAuth } from '../_lib/auth.js';
 

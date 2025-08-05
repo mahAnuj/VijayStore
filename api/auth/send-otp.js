@@ -1,4 +1,4 @@
-import { sendOTP } from '../../server/phoneAuth.js';
+import { sendOTP } from '../_lib/phoneAuth.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
