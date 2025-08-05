@@ -1,37 +1,18 @@
 
 <svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="metalGradient" cx="50%" cy="30%" r="70%">
-      <stop offset="0%" style="stop-color:#f0f0f0"/>
-      <stop offset="100%" style="stop-color:#a0a0a0"/>
-    </radialGradient>
-    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4a90e2"/>
-      <stop offset="100%" style="stop-color:#2c5aa0"/>
+    <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b8b8b8;stop-opacity:1" />
     </linearGradient>
   </defs>
   <rect width="400" height="400" fill="#f8f9fa"/>
-  
-  <!-- Main body -->
-  <rect x="80" y="140" width="240" height="120" fill="url(#metalGradient)" stroke="#666" stroke-width="2" rx="15"/>
-  
-  <!-- Airmax logo area -->
-  <rect x="90" y="150" width="80" height="30" fill="#2c5aa0" rx="5"/>
-  <text x="130" y="170" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="white">AIRMAX</text>
-  
-  <!-- Solenoid coil -->
-  <circle cx="200" cy="200" r="35" fill="url(#blueGradient)" stroke="#1a365d" stroke-width="3"/>
-  <circle cx="200" cy="200" r="25" fill="none" stroke="#fff" stroke-width="2" opacity="0.3"/>
-  
-  <!-- Electrical connection -->
-  <rect x="180" y="120" width="40" height="35" fill="#333" rx="8"/>
-  <rect x="185" y="125" width="30" height="25" fill="#555" rx="3"/>
-  
-  <!-- Input/Output ports -->
-  <rect x="40" y="185" width="40" height="30" fill="url(#metalGradient)" stroke="#666"/>
-  <rect x="320" y="185" width="40" height="30" fill="url(#metalGradient)" stroke="#666"/>
-  
-  <!-- Model number -->
-  <text x="200" y="290" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#333">AJCS-01-202</text>
-  <text x="200" y="310" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">Direct Acting</text>
+  <rect x="100" y="150" width="200" height="100" fill="url(#metalGrad)" stroke="#666" stroke-width="2" rx="10"/>
+  <circle cx="200" cy="200" r="30" fill="#4a90e2" stroke="#333" stroke-width="2"/>
+  <rect x="180" y="120" width="40" height="30" fill="#333" rx="5"/>
+  <line x1="190" y1="120" x2="190" y2="80" stroke="#333" stroke-width="3"/>
+  <line x1="210" y1="120" x2="210" y2="80" stroke="#333" stroke-width="3"/>
+  <rect x="50" y="190" width="50" height="20" fill="url(#metalGrad)" stroke="#666" stroke-width="1"/>
+  <rect x="300" y="190" width="50" height="20" fill="url(#metalGrad)" stroke="#666" stroke-width="1"/>
+  <text x="200" y="320" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#333">Solenoid Valve</text>
 </svg>
