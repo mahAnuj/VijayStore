@@ -21,10 +21,21 @@ export default function Profile() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [profileData, setProfileData] = useState({
     phone: "",
     company: "",
     gst: "",
+  });
+  const [addressData, setAddressData] = useState({
+    label: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "India",
+    isDefault: false,
   });
 
   // Redirect if not authenticated
@@ -74,7 +85,8 @@ export default function Profile() {
   // Profile mutation
   const profileMutation = useMutation({
     mutationFn: async (data: typeof profileData) => {
-      return await apiRequest("/api/profile", "POST", data);
+      const method = profile ? "PUT" : "POST";
+      return await apiRequest(method, "/api/profile", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
@@ -104,6 +116,49 @@ export default function Profile() {
     },
   });
 
+  // Address mutation
+  const addressMutation = useMutation({
+    mutationFn: async (data: typeof addressData) => {
+      return await apiRequest("POST", "/api/addresses", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/addresses"] });
+      setIsAddingAddress(false);
+      setAddressData({
+        label: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        pincode: "",
+        country: "India",
+        isDefault: false,
+      });
+      toast({
+        title: "Success",
+        description: "Address added successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to add address",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -114,6 +169,10 @@ export default function Profile() {
 
   const handleSaveProfile = () => {
     profileMutation.mutate(profileData);
+  };
+
+  const handleSaveAddress = () => {
+    addressMutation.mutate(addressData);
   };
 
   const getStatusBadge = (status: string) => {
@@ -237,14 +296,90 @@ export default function Profile() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Saved Addresses
-                  <Button size="sm">
+                  <Button size="sm" onClick={() => setIsAddingAddress(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add Address
                   </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {addresses.length === 0 ? (
+                {isAddingAddress && (
+                  <div className="border rounded-lg p-4 mb-4 bg-gray-50">
+                    <h3 className="font-medium mb-4">Add New Address</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="label">Address Label</Label>
+                        <Input
+                          id="label"
+                          value={addressData.label}
+                          onChange={(e) => setAddressData({ ...addressData, label: e.target.value })}
+                          placeholder="Home, Office, etc."
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="pincode">Pincode</Label>
+                        <Input
+                          id="pincode" 
+                          value={addressData.pincode}
+                          onChange={(e) => setAddressData({ ...addressData, pincode: e.target.value })}
+                          placeholder="400001"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="addressLine1">Address Line 1</Label>
+                        <Input
+                          id="addressLine1"
+                          value={addressData.addressLine1}
+                          onChange={(e) => setAddressData({ ...addressData, addressLine1: e.target.value })}
+                          placeholder="House/Building number, Street"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
+                        <Input
+                          id="addressLine2"
+                          value={addressData.addressLine2}
+                          onChange={(e) => setAddressData({ ...addressData, addressLine2: e.target.value })}
+                          placeholder="Area, Locality"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="city">City</Label>
+                        <Input
+                          id="city"
+                          value={addressData.city}
+                          onChange={(e) => setAddressData({ ...addressData, city: e.target.value })}
+                          placeholder="Mumbai"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="state">State</Label>
+                        <Input
+                          id="state"
+                          value={addressData.state}
+                          onChange={(e) => setAddressData({ ...addressData, state: e.target.value })}
+                          placeholder="Maharashtra"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button 
+                        onClick={handleSaveAddress} 
+                        disabled={addressMutation.isPending}
+                      >
+                        Save Address
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsAddingAddress(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {addresses.length === 0 && !isAddingAddress ? (
                   <p className="text-gray-500 text-center py-8">No addresses saved yet</p>
                 ) : (
                   <div className="space-y-4">

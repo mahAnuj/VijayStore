@@ -182,7 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/my-orders", isPhoneAuthenticated, async (req, res) => {
+  app.get("/api/orders/my-orders", isPhoneAuthenticated, async (req, res) => {
     try {
       const orders = await storage.getOrdersByUser((req as any).user.id);
       res.json(orders);
