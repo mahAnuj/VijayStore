@@ -1,5 +1,5 @@
 // Product seeding endpoint for Vercel
-import { storage } from './_lib/storage.js';
+import { neon } from '@neondatabase/serverless';
 
 const products = [
   {
@@ -245,32 +245,44 @@ export default async function handler(req, res) {
   }
   
   try {
+    if (!process.env.DATABASE_URL) {
+      return res.status(500).json({ error: 'DATABASE_URL not configured' });
+    }
+
+    const sql = neon(process.env.DATABASE_URL);
+    
     // Check if products already exist
-    const existingProducts = await storage.getProducts();
-    if (existingProducts.length > 0) {
+    const existingProducts = await sql('SELECT COUNT(*) as count FROM products WHERE is_active = true');
+    const productCount = existingProducts[0]?.count || 0;
+    
+    if (productCount > 0) {
       return res.json({ 
-        message: `Found ${existingProducts.length} existing products`,
-        products: existingProducts.length 
+        message: `Found ${productCount} existing products`,
+        products: parseInt(productCount)
       });
     }
     
-    // Insert products
+    // Insert products using raw SQL
     const insertedProducts = [];
     for (const product of products) {
-      const inserted = await storage.createProduct(product);
-      insertedProducts.push(inserted);
+      const result = await sql`
+        INSERT INTO products (id, name, description, category, price, image_url, specifications, stock, is_active, created_at, updated_at)
+        VALUES (${product.id}, ${product.name}, ${product.description}, ${product.category}, ${product.price}, ${product.imageUrl}, ${JSON.stringify(product.specifications)}, ${product.stock}, ${product.isActive}, NOW(), NOW())
+        RETURNING *
+      `;
+      insertedProducts.push(result[0]);
     }
     
     // Create admin user if not exists
     const adminPhone = '+917878787878';
     try {
-      await storage.createUser({
-        id: 'admin-user-id',
-        phone: adminPhone,
-        role: 'admin'
-      });
+      await sql`
+        INSERT INTO users (id, phone, role, created_at, updated_at)
+        VALUES ('admin-user-id', ${adminPhone}, 'admin', NOW(), NOW())
+        ON CONFLICT (phone) DO NOTHING
+      `;
     } catch (error) {
-      // User probably already exists
+      console.log('Admin user probably already exists:', error.message);
     }
     
     res.json({ 
