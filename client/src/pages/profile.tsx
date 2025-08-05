@@ -76,16 +76,14 @@ export default function Profile() {
 
   // Update profile data when profile loads
   useEffect(() => {
-    if (profile) {
-      setProfileData({
-        email: user?.email || "",
-        firstName: user?.firstName || "",
-        lastName: user?.lastName || "",
-        phone: profile.phone || user?.phone || "",
-        company: profile.company || "",
-        gst: profile.gst || "",
-      });
-    }
+    setProfileData({
+      email: user?.email || "",
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      phone: profile?.phone || user?.phone || "",
+      company: profile?.company || "",
+      gst: profile?.gst || "",
+    });
   }, [profile, user]);
 
   // Profile mutation
