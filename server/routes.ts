@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertProductSchema, insertOrderSchema, insertInquirySchema, insertCustomerProfileSchema, insertCustomerAddressSchema } from "@shared/schema";
+import path from "path";
+import { existsSync } from "fs";
 import Razorpay from "razorpay";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { sendOTP, verifyOTP, isPhoneAuthenticated, isPhoneAdmin } from "./phoneAuth";
@@ -15,6 +17,20 @@ const razorpay = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
   : null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Static file serving for images - MUST be before other middleware
+  app.get('/images/*', (req, res, next) => {
+    const filePath = path.join(process.cwd(), 'public', req.path);
+    if (existsSync(filePath)) {
+      // Set correct content type for SVG files
+      if (req.path.endsWith('.svg')) {
+        res.setHeader('Content-Type', 'image/svg+xml');
+      }
+      res.sendFile(filePath);
+    } else {
+      res.status(404).json({ error: 'Image not found' });
+    }
+  });
+
   // Auth middleware
   await setupAuth(app);
 
