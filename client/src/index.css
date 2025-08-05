@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(224, 71.4%, 4.1%);
+  --primary-foreground: hsl(210, 20%, 98%);
+  --secondary: hsl(220, 14.3%, 95.9%);
+  --secondary-foreground: hsl(220.9, 39.3%, 11%);
+  --accent: hsl(220, 14.3%, 95.9%);
+  --accent-foreground: hsl(220.9, 39.3%, 11%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Industrial Theme Colors */
+  --industrial-blue: hsl(224, 76%, 48%);
+  --industrial-orange: hsl(20, 91%, 48%);
+  --trust-green: hsl(160, 84%, 39%);
+}
+
+.dark {
+  --background: hsl(20, 14.3%, 4.1%);
+  --foreground: hsl(60, 9.1%, 97.8%);
+  --muted: hsl(12, 6.5%, 15.1%);
+  --muted-foreground: hsl(24, 5.4%, 63.9%);
+  --popover: hsl(20, 14.3%, 4.1%);
+  --popover-foreground: hsl(60, 9.1%, 97.8%);
+  --card: hsl(20, 14.3%, 4.1%);
+  --card-foreground: hsl(60, 9.1%, 97.8%);
+  --border: hsl(12, 6.5%, 15.1%);
+  --input: hsl(12, 6.5%, 15.1%);
+  --primary: hsl(60, 9.1%, 97.8%);
+  --primary-foreground: hsl(24, 9.8%, 10%);
+  --secondary: hsl(12, 6.5%, 15.1%);
+  --secondary-foreground: hsl(60, 9.1%, 97.8%);
+  --accent: hsl(12, 6.5%, 15.1%);
+  --accent-foreground: hsl(60, 9.1%, 97.8%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(24, 5.7%, 82.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  .industrial-blue {
+    color: var(--industrial-blue);
+  }
+  .bg-industrial-blue {
+    background-color: var(--industrial-blue);
+  }
+  .industrial-orange {
+    color: var(--industrial-orange);
+  }
+  .bg-industrial-orange {
+    background-color: var(--industrial-orange);
+  }
+  .trust-green {
+    color: var(--trust-green);
+  }
+  .bg-trust-green {
+    background-color: var(--trust-green);
+  }
+}
