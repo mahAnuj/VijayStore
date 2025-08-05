@@ -56,7 +56,7 @@ export default function Profile() {
 
   // Fetch user orders
   const { data: orders = [] } = useQuery<Order[]>({
-    queryKey: ["/api/my-orders"],
+    queryKey: ["/api/orders/my-orders"],
     enabled: isAuthenticated,
   });
 

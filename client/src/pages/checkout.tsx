@@ -42,7 +42,7 @@ const CheckoutPage = () => {
 
     try {
       // Create payment order
-      const paymentRes = await apiRequest("POST", "/api/create-payment-order", {
+      const paymentRes = await apiRequest("POST", "/api/payments/create-order", {
         amount: getTotalPrice(),
       });
       const paymentResponse = await paymentRes.json();
@@ -82,7 +82,7 @@ const CheckoutPage = () => {
       handler: async (response: any) => {
         try {
           // Verify payment
-          await apiRequest("POST", "/api/verify-payment", {
+          await apiRequest("POST", "/api/payments/verify", {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
