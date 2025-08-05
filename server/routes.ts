@@ -18,8 +18,20 @@ const razorpay = RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET ? new Razorpay({
 }) : null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication (using phone auth instead of Replit Auth)
-  // await setupAuth(app);
+  // Setup session middleware
+  const session = (await import('express-session')).default;
+  const sessionConfig = {
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  };
+  
+  app.use(session(sessionConfig));
 
   // Health check endpoint
   app.get("/api/health", (_req, res) => {
@@ -54,6 +66,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await verifyOTP(phoneNumber, otp);
       
       if (result.success && result.user) {
+        // Initialize session if it doesn't exist
+        if (!(req as any).session) {
+          (req as any).session = {};
+        }
         (req as any).session.userId = result.user.id;
         res.json({ success: true, message: result.message, user: result.user });
       } else {
