@@ -65,13 +65,26 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Serverless Functions Optimization for Vercel Free Plan (January 2025)
+- **Date**: January 5, 2025  
+- **Change**: Consolidated serverless functions to stay under 16-function limit for Vercel free plan
+- **Details**:
+  - Reduced from 16 functions to 8 functions by combining related endpoints
+  - Combined `/api/auth/*` (4 files) into single `/api/auth.js` 
+  - Combined `/api/orders/*` and `/api/my-orders.js` (4 files) into single `/api/orders.js`
+  - Combined `/api/addresses/*` (2 files) into single `/api/addresses.js`
+  - Combined `/api/inquiries/*` (2 files) into single `/api/inquiries.js`
+  - Combined payment endpoints into single `/api/payments.js`
+  - Each combined function handles multiple HTTP methods and routes internally
+- **Impact**: Vercel free plan compatible with 8 total functions, maintaining all API functionality
+
 ### Server Files Migration to API Library (January 2025)
 - **Date**: January 5, 2025  
 - **Change**: Moved all server logic from `/server/` to `/api/_lib/` for Vercel compatibility
 - **Details**:
   - Converted TypeScript files to JavaScript for serverless function compatibility
   - Moved `db.ts`, `storage.ts`, `phoneAuth.ts`, `replitAuth.ts` to `/api/_lib/` as `.js` files
-  - Updated all 18+ serverless functions to import from `_lib/` instead of `../../server/`
+  - Updated all serverless functions to import from `_lib/` instead of `../../server/`
   - Express routes updated to import from `../api/_lib/` maintaining local development compatibility
   - Maintained dual architecture: Express for development, serverless functions for production
 - **Impact**: Single source of truth for business logic, compatible with both local Express and Vercel serverless deployment
