@@ -23,6 +23,9 @@ export default function Profile() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [profileData, setProfileData] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
     phone: "",
     company: "",
     gst: "",
@@ -75,12 +78,15 @@ export default function Profile() {
   useEffect(() => {
     if (profile) {
       setProfileData({
-        phone: profile.phone || "",
+        email: user?.email || "",
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        phone: profile.phone || user?.phone || "",
         company: profile.company || "",
         gst: profile.gst || "",
       });
     }
-  }, [profile]);
+  }, [profile, user]);
 
   // Profile mutation
   const profileMutation = useMutation({
@@ -236,11 +242,30 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label>Email</Label>
-                    <Input value={user?.email || ""} disabled />
+                    <Input
+                      value={profileData.email}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                      disabled={!isEditingProfile}
+                      placeholder="Enter email address"
+                    />
                   </div>
                   <div>
-                    <Label>Name</Label>
-                    <Input value={`${user?.firstName || ""} ${user?.lastName || ""}`.trim()} disabled />
+                    <Label>First Name</Label>
+                    <Input
+                      value={profileData.firstName}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                      disabled={!isEditingProfile}
+                      placeholder="Enter first name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Last Name</Label>
+                    <Input
+                      value={profileData.lastName}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                      disabled={!isEditingProfile}
+                      placeholder="Enter last name"
+                    />
                   </div>
                   <div>
                     <Label>Phone</Label>

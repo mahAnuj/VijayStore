@@ -296,8 +296,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/profile", isPhoneAuthenticated, async (req, res) => {
     try {
-      const profileData = insertCustomerProfileSchema.partial().parse(req.body);
-      const profile = await storage.updateCustomerProfile((req as any).user.id, profileData);
+      const { email, firstName, lastName, ...profileData } = req.body;
+      
+      // Update user info (email, firstName, lastName)
+      if (email !== undefined || firstName !== undefined || lastName !== undefined) {
+        await storage.updateUser((req as any).user.id, {
+          email: email || null,
+          firstName: firstName || null,
+          lastName: lastName || null,
+        });
+      }
+      
+      // Update customer profile data
+      const parsedProfileData = insertCustomerProfileSchema.partial().parse(profileData);
+      const profile = await storage.updateCustomerProfile((req as any).user.id, parsedProfileData);
       res.json(profile);
     } catch (error) {
       console.error("Error updating profile:", error);

