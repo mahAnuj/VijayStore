@@ -19,11 +19,11 @@
     },
     {
       "src": "/api/(.*)",
-      "destination": "/api/$1"
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*)",
-      "destination": "/index.html"
+      "dest": "/index.html"
     }
   ]
 }
