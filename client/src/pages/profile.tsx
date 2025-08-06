@@ -89,8 +89,8 @@ export default function Profile() {
   // Profile mutation
   const profileMutation = useMutation({
     mutationFn: async (data: typeof profileData) => {
-      const method = profile ? "PUT" : "POST";
-      return await apiRequest(method, "/api/profile", data);
+      // Always use PUT since user must exist to be authenticated
+      return await apiRequest("PUT", "/api/profile", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
