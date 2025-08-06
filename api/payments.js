@@ -38,7 +38,6 @@ async function handleVerifyPayment(req, res) {
 export default async function handler(req, res) {
   try {
     const { method } = req;
-    const path = req.url?.split('?')[0];
     
     // Check authentication for payment endpoints
     const authResult = await isPhoneAuthenticated(req);
@@ -46,15 +45,19 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: authResult.message });
     }
     
-    if (method === 'POST' && path === '/api/payments/create-order') {
-      return await handleCreatePaymentOrder(req, res);
+    if (method === 'POST') {
+      const { action } = req.body || {};
+      switch (action) {
+        case 'create-order':
+          return await handleCreatePaymentOrder(req, res);
+        case 'verify':
+          return await handleVerifyPayment(req, res);
+        default:
+          return res.status(400).json({ message: 'Invalid action. Supported actions: create-order, verify' });
+      }
     }
     
-    if (method === 'POST' && path === '/api/payments/verify') {
-      return await handleVerifyPayment(req, res);
-    }
-    
-    res.status(404).json({ message: 'Not found' });
+    res.status(405).json({ message: 'Method not allowed' });
   } catch (error) {
     console.error('Payment error:', error);
     res.status(500).json({ message: 'Internal server error' });

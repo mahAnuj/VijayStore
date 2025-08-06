@@ -12,10 +12,18 @@ export default async function handler(req, res) {
 
     if (method === 'GET') {
       // Get products with optional filtering
-      const { category, search } = req.query;
+      const { category, search, id } = req.query;
       
       let query;
-      if (search) {
+      if (id) {
+        // Get specific product by ID
+        query = sql`SELECT * FROM products WHERE id = ${id}`;
+        const products = await query;
+        if (products.length === 0) {
+          return res.status(404).json({ message: 'Product not found' });
+        }
+        return res.json(products[0]);
+      } else if (search) {
         query = sql`
           SELECT * FROM products 
           WHERE name ILIKE ${'%' + search + '%'} 
@@ -50,6 +58,47 @@ export default async function handler(req, res) {
       `;
       
       res.status(201).json(newProduct[0]);
+      
+    } else if (method === 'PUT') {
+      // Update product (admin only - simplified auth check)
+      const { id } = req.query;
+      const { name, category, price, description, imageUrl, specifications } = req.body;
+      
+      if (!id) {
+        return res.status(400).json({ message: 'Product ID is required' });
+      }
+      
+      const updatedProduct = await sql`
+        UPDATE products 
+        SET name = ${name}, category = ${category}, price = ${price}, description = ${description || ''}, 
+            image_url = ${imageUrl || ''}, specifications = ${JSON.stringify(specifications || {})}, updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+      
+      if (updatedProduct.length === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      
+      res.json(updatedProduct[0]);
+      
+    } else if (method === 'DELETE') {
+      // Delete product (admin only - simplified auth check)
+      const { id } = req.query;
+      
+      if (!id) {
+        return res.status(400).json({ message: 'Product ID is required' });
+      }
+      
+      const deletedProduct = await sql`
+        DELETE FROM products WHERE id = ${id} RETURNING *
+      `;
+      
+      if (deletedProduct.length === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      
+      res.json({ message: 'Product deleted successfully' });
       
     } else {
       res.status(405).json({ message: 'Method not allowed' });

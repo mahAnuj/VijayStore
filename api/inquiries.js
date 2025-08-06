@@ -24,21 +24,24 @@ async function handleUpdateInquiryStatus(req, res) {
 export default async function handler(req, res) {
   try {
     const { method } = req;
-    const path = req.url?.split('?')[0];
+    const { id } = req.query;
     
-    if (method === 'GET' && path === '/api/inquiries') {
+    if (method === 'GET') {
+      // GET /api/inquiries - admin only, get all inquiries
       return await withAdminAuth(handleGetInquiries)(req, res);
     }
     
-    if (method === 'POST' && path === '/api/inquiries') {
+    if (method === 'POST') {
+      // POST /api/inquiries - create new inquiry
       return await handleCreateInquiry(req, res);
     }
     
-    if (method === 'PUT' && path.includes('/status')) {
+    if (method === 'PUT' && id) {
+      // PUT /api/inquiries?id=123 - update inquiry status (admin only)
       return await withAdminAuth(handleUpdateInquiryStatus)(req, res);
     }
     
-    res.status(404).json({ message: 'Not found' });
+    res.status(405).json({ message: 'Method not allowed' });
   } catch (error) {
     console.error('Inquiry error:', error);
     res.status(500).json({ message: 'Internal server error' });

@@ -227,25 +227,28 @@ async function handleGetUser(req, res) {
 export default async function handler(req, res) {
   try {
     const { method } = req;
-    const path = req.url?.split('?')[0];
     
-    if (method === 'POST' && path === '/api/auth/send-otp') {
-      return await handleSendOtp(req, res);
+    // Handle POST requests with action parameter from body
+    if (method === 'POST') {
+      const { action } = req.body || {};
+      switch (action) {
+        case 'send-otp':
+          return await handleSendOtp(req, res);
+        case 'verify-otp':
+          return await handleVerifyOtp(req, res);
+        case 'logout':
+          return await handleLogout(req, res);
+        default:
+          return res.status(400).json({ message: 'Invalid action. Supported actions: send-otp, verify-otp, logout' });
+      }
     }
     
-    if (method === 'POST' && path === '/api/auth/verify-otp') {
-      return await handleVerifyOtp(req, res);
-    }
-    
-    if (method === 'POST' && path === '/api/auth/logout') {
-      return await handleLogout(req, res);
-    }
-    
-    if (method === 'GET' && path === '/api/auth/user') {
+    // Handle GET request for user info (no query params needed)
+    if (method === 'GET') {
       return await handleGetUser(req, res);
     }
     
-    res.status(404).json({ message: 'Not found' });
+    res.status(405).json({ message: 'Method not allowed' });
   } catch (error) {
     console.error('Auth error:', error);
     res.status(500).json({ message: 'Internal server error' });

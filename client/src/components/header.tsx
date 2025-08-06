@@ -106,7 +106,11 @@ export default function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={() => {
-                      fetch('/api/auth/logout', { method: 'POST' })
+                      fetch('/api/auth', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'logout' })
+        })
                         .then(() => window.location.reload());
                     }}
                     className="cursor-pointer"

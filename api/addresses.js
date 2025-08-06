@@ -53,25 +53,29 @@ async function handleDeleteAddress(req, res) {
 export default async function handler(req, res) {
   try {
     const { method } = req;
-    const path = req.url?.split('?')[0];
+    const { id } = req.query;
     
-    if (method === 'GET' && path === '/api/addresses') {
+    if (method === 'GET') {
+      // GET /api/addresses - get user's addresses
       return await handleGetAddresses(req, res);
     }
     
-    if (method === 'POST' && path === '/api/addresses') {
+    if (method === 'POST') {
+      // POST /api/addresses - create new address
       return await handleCreateAddress(req, res);
     }
     
-    if (method === 'PUT' && path.startsWith('/api/addresses/')) {
+    if (method === 'PUT' && id) {
+      // PUT /api/addresses?id=123 - update address
       return await handleUpdateAddress(req, res);
     }
     
-    if (method === 'DELETE' && path.startsWith('/api/addresses/')) {
+    if (method === 'DELETE' && id) {
+      // DELETE /api/addresses?id=123 - delete address
       return await handleDeleteAddress(req, res);
     }
     
-    res.status(404).json({ message: 'Not found' });
+    res.status(405).json({ message: 'Method not allowed' });
   } catch (error) {
     console.error('Address error:', error);
     res.status(500).json({ message: 'Internal server error' });

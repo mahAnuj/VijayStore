@@ -61,7 +61,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
   const updateProductMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<InsertProduct> }) => {
-      await apiRequest("PUT", `/api/products/${id}`, data);
+      await apiRequest("PUT", `/api/products?id=${id}`, data);
     },
     onSuccess: () => {
       toast({ title: "Product updated successfully" });
@@ -76,7 +76,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("DELETE", `/api/products/${id}`);
+      await apiRequest("DELETE", `/api/products?id=${id}`);
     },
     onSuccess: () => {
       toast({ title: "Product deleted successfully" });

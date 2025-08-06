@@ -21,7 +21,7 @@ export default function ProductDetail() {
   const [, setLocation] = useLocation();
 
   const { data: product, isLoading, error } = useQuery<Product>({
-    queryKey: [`/api/products/${id}`],
+    queryKey: [`/api/products?id=${id}`],
   });
 
   const handleAddToCart = () => {

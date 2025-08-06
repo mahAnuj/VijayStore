@@ -22,7 +22,7 @@ export default function PhoneLogin() {
   // Send OTP mutation
   const sendOtpMutation = useMutation({
     mutationFn: async (phone: string) => {
-      const res = await apiRequest('POST', '/api/auth/send-otp', { phoneNumber: phone });
+      const res = await apiRequest('POST', '/api/auth', { action: 'send-otp', phoneNumber: phone });
       return await res.json();
     },
     onSuccess: (data: any) => {
@@ -63,7 +63,7 @@ export default function PhoneLogin() {
   // Verify OTP mutation
   const verifyOtpMutation = useMutation({
     mutationFn: async ({ phone, otpCode }: { phone: string; otpCode: string }) => {
-      const res = await apiRequest('POST', '/api/auth/verify-otp', { phoneNumber: phone, otp: otpCode });
+      const res = await apiRequest('POST', '/api/auth', { action: 'verify-otp', phoneNumber: phone, otp: otpCode });
       return await res.json();
     },
     onSuccess: (data: any) => {

@@ -65,33 +65,36 @@ async function handleUpdateOrderStatus(req, res) {
 export default async function handler(req, res) {
   try {
     const { method } = req;
-    const path = req.url?.split('?')[0];
+    const { action, id } = req.query;
     
-    if (method === 'GET' && path === '/api/orders') {
-      return await withAdminAuth(handleGetOrders)(req, res);
+    if (method === 'GET') {
+      // GET /api/orders - admin only, get all orders
+      if (!action && !id) {
+        return await withAdminAuth(handleGetOrders)(req, res);
+      }
+      
+      // GET /api/orders?action=my-orders - get user's orders
+      if (action === 'my-orders') {
+        return await handleGetMyOrders(req, res);
+      }
+      
+      // GET /api/orders?id=123 - get specific order
+      if (id) {
+        return await handleGetOrder(req, res);
+      }
     }
     
-    if (method === 'GET' && path === '/api/orders/my-orders') {
-      return await handleGetMyOrders(req, res);
-    }
-    
-    if (method === 'GET' && path.startsWith('/api/orders/') && path.includes('/status')) {
-      return await handleGetOrder(req, res);
-    }
-    
-    if (method === 'GET' && path.startsWith('/api/orders/')) {
-      return await handleGetOrder(req, res);
-    }
-    
-    if (method === 'POST' && path === '/api/orders') {
+    if (method === 'POST') {
+      // POST /api/orders - create new order
       return await handleCreateOrder(req, res);
     }
     
-    if (method === 'PUT' && path.includes('/status')) {
+    if (method === 'PUT') {
+      // PUT /api/orders - update order status (admin only)
       return await withAdminAuth(handleUpdateOrderStatus)(req, res);
     }
     
-    res.status(404).json({ message: 'Not found' });
+    res.status(405).json({ message: 'Method not allowed' });
   } catch (error) {
     console.error('Order error:', error);
     res.status(500).json({ message: 'Internal server error' });
