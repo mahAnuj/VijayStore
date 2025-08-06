@@ -7,7 +7,7 @@ All API endpoints have been updated to work with Vercel's serverless functions. 
 
 ### 1. Authentication (`/api/auth`)
 - **POST** `/api/auth` with `action` in body
-- **GET** `/api/auth` for user info
+- **GET** `/api/auth` for user info (updated from `/api/auth/user`)
 
 ### 2. Products (`/api/products`)
 - **GET** `/api/products` - list all products
@@ -107,6 +107,15 @@ queryKey: [`/api/products/${id}`]
 
 // After
 queryKey: [`/api/products?id=${id}`]
+```
+
+### 7. Auth Hook (`client/src/hooks/useAuth.ts`)
+```javascript
+// Before
+queryKey: ["/api/auth/user"]
+
+// After
+queryKey: ["/api/auth"]
 ```
 
 ## API Usage Examples

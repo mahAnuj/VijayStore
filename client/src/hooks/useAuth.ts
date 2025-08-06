@@ -3,7 +3,7 @@ import type { User } from "@shared/schema";
 
 export function useAuth() {
   const { data: response, isLoading } = useQuery<{user: User}>({
-    queryKey: ["/api/auth/user"],
+    queryKey: ["/api/auth"],
     retry: false,
   });
 
