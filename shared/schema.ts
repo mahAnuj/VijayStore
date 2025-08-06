@@ -96,6 +96,18 @@ export const inquiries = pgTable("inquiries", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// OTP storage table for JWT authentication
+export const otps = pgTable("otps", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  phone: varchar("phone").notNull().unique(),
+  otp: varchar("otp", { length: 10 }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_otps_phone_expires").on(table.phone, table.expiresAt)
+]);
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(customerProfiles, {
@@ -170,3 +182,5 @@ export type CustomerProfile = typeof customerProfiles.$inferSelect;
 export type InsertCustomerProfile = z.infer<typeof insertCustomerProfileSchema>;
 export type CustomerAddress = typeof customerAddresses.$inferSelect;
 export type InsertCustomerAddress = z.infer<typeof insertCustomerAddressSchema>;
+export type Otp = typeof otps.$inferSelect;
+export type InsertOtp = typeof otps.$inferInsert;

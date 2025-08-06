@@ -1,78 +1,55 @@
-// Combined authentication endpoints - Vercel compatible
+// JWT-based authentication endpoints for Vercel
 import { neon } from '@neondatabase/serverless';
+import jwt from 'jsonwebtoken';
 
-// Simple session management for serverless
-const sessions = new Map();
+// JWT secret - in production, use environment variable
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_EXPIRES_IN = '24h'; // 24 hours
 
-function createSession(userId) {
-  const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  sessions.set(sessionId, { userId, createdAt: Date.now() });
-  return sessionId;
+// Database-based OTP management for serverless
+
+// JWT token utilities
+function createToken(userId) {
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
-function getSession(sessionId) {
-  const session = sessions.get(sessionId);
-  if (!session) return null;
-  
-  // Session expires after 24 hours
-  if (Date.now() - session.createdAt > 24 * 60 * 60 * 1000) {
-    sessions.delete(sessionId);
+function verifyToken(token) {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return { valid: true, userId: decoded.userId };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
+
+// Extract token from Authorization header
+function extractToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
+  return authHeader.substring(7); // Remove 'Bearer ' prefix
+}
+
+// Middleware to verify JWT token
+function authenticateUser(req, res, next) {
+  const token = extractToken(req);
   
-  return session.userId;
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+  
+  const result = verifyToken(token);
+  if (!result.valid) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+  
+  req.userId = result.userId;
+  next();
 }
-
-function destroySession(sessionId) {
-  sessions.delete(sessionId);
-}
-
-function setSessionCookie(res, sessionId) {
-  res.setHeader('Set-Cookie', `sessionId=${sessionId}; HttpOnly; Path=/; Max-Age=${24 * 60 * 60}; SameSite=Lax`);
-}
-
-function clearSessionCookie(res) {
-  res.setHeader('Set-Cookie', 'sessionId=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
-}
-
-// Simple OTP management for Vercel
-const otpStore = new Map();
 
 async function sendOTP(phoneNumber) {
   console.log('Send OTP called for:', phoneNumber);
-  
-  // For demo purposes, always use 123456 as OTP
-  const otp = '123456';
-  otpStore.set(phoneNumber, { otp, timestamp: Date.now() });
-  
-  console.log(`Demo mode: OTP for ${phoneNumber} is ${otp}`);
-  
-  return {
-    success: true,
-    message: 'Demo mode: Use OTP 123456 to verify ' + phoneNumber
-  };
-}
-
-async function verifyOTP(phoneNumber, otp) {
-  console.log('Verify OTP called for:', phoneNumber, 'with OTP:', otp);
-  
-  const storedOtp = otpStore.get(phoneNumber);
-  if (!storedOtp) {
-    return { success: false, message: 'OTP not found or expired' };
-  }
-  
-  // Check if OTP is expired (5 minutes)
-  if (Date.now() - storedOtp.timestamp > 5 * 60 * 1000) {
-    otpStore.delete(phoneNumber);
-    return { success: false, message: 'OTP has expired' };
-  }
-  
-  if (storedOtp.otp !== otp) {
-    return { success: false, message: 'Invalid OTP' };
-  }
-  
-  // OTP verified successfully
-  otpStore.delete(phoneNumber);
   
   if (!process.env.DATABASE_URL) {
     return { success: false, message: 'Database not configured' };
@@ -81,6 +58,65 @@ async function verifyOTP(phoneNumber, otp) {
   const sql = neon(process.env.DATABASE_URL);
   
   try {
+    // For demo purposes, always use 123456 as OTP
+    const otp = '123456';
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+    
+    // Store OTP in database
+    await sql`
+      INSERT INTO otps (phone, otp, expires_at, created_at)
+      VALUES (${phoneNumber}, ${otp}, ${expiresAt}, NOW())
+      ON CONFLICT (phone) 
+      DO UPDATE SET 
+        otp = ${otp},
+        expires_at = ${expiresAt},
+        created_at = NOW()
+    `;
+    
+    console.log(`Demo mode: OTP for ${phoneNumber} is ${otp}`);
+    
+    return {
+      success: true,
+      message: 'Demo mode: Use OTP 123456 to verify ' + phoneNumber
+    };
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    return { success: false, message: 'Failed to send OTP' };
+  }
+}
+
+async function verifyOTP(phoneNumber, otp) {
+  console.log('Verify OTP called for:', phoneNumber, 'with OTP:', otp);
+  
+  if (!process.env.DATABASE_URL) {
+    return { success: false, message: 'Database not configured' };
+  }
+  
+  const sql = neon(process.env.DATABASE_URL);
+  
+  try {
+    // Get OTP from database
+    const otpResults = await sql`
+      SELECT * FROM otps 
+      WHERE phone = ${phoneNumber} 
+      AND expires_at > NOW()
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `;
+    
+    const storedOtp = otpResults[0];
+    
+    if (!storedOtp) {
+      return { success: false, message: 'OTP not found or expired' };
+    }
+    
+    if (storedOtp.otp !== otp) {
+      return { success: false, message: 'Invalid OTP' };
+    }
+    
+        // OTP verified successfully - delete it
+    await sql`DELETE FROM otps WHERE phone = ${phoneNumber}`;
+    
     // Check if user exists
     let users = await sql`SELECT * FROM users WHERE phone = ${phoneNumber}`;
     let user = users[0];
@@ -98,7 +134,7 @@ async function verifyOTP(phoneNumber, otp) {
     
     return {
       success: true,
-      message: 'Phone verified successfully',
+      message: 'OTP verified successfully',
       user: {
         id: user.id,
         phone: user.phone,
@@ -109,49 +145,10 @@ async function verifyOTP(phoneNumber, otp) {
       }
     };
   } catch (error) {
-    console.error('Database error:', error);
-    return { success: false, message: 'Database error occurred' };
+    console.error('Database error during OTP verification:', error);
+    return { success: false, message: 'Database error' };
   }
 }
-
-// Cookie parsing utility
-function parseCookies(cookieHeader) {
-  const cookies = {};
-  if (cookieHeader) {
-    cookieHeader.split(';').forEach(cookie => {
-      const [name, value] = cookie.trim().split('=');
-      if (name && value) {
-        cookies[name] = value;
-      }
-    });
-  }
-  return cookies;
-}
-
-// Simple storage functions for Vercel
-const storage = {
-  async getUser(userId) {
-    if (!process.env.DATABASE_URL) throw new Error('Database not configured');
-    const sql = neon(process.env.DATABASE_URL);
-    const users = await sql`SELECT * FROM users WHERE id = ${userId}`;
-    const user = users[0];
-    if (!user) return null;
-    return {
-      id: user.id,
-      phone: user.phone,
-      role: user.role,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      email: user.email
-    };
-  }
-};
-
-const sessionManager = {
-  createSession,
-  getSession,
-  destroySession
-};
 
 async function handleSendOtp(req, res) {
   const { phoneNumber } = req.body;
@@ -174,50 +171,45 @@ async function handleVerifyOtp(req, res) {
   const result = await verifyOTP(phoneNumber, otp);
   
   if (result.success && result.user) {
-    // Create session for Vercel
-    const sessionId = sessionManager.createSession(result.user.id);
-    setSessionCookie(res, sessionId);
+    // Create JWT token
+    const token = createToken(result.user.id);
     
     res.json({ 
       success: true, 
       message: result.message, 
       user: result.user,
-      sessionId
+      token // Send token to client
     });
   } else {
     res.status(400).json({ success: false, message: result.message });
   }
 }
 
-async function handleLogout(req, res) {
-  const cookies = parseCookies(req.headers.cookie);
-  const sessionId = cookies.sessionId;
-  if (sessionId) {
-    sessionManager.destroySession(sessionId);
-    clearSessionCookie(res);
-  }
-  res.json({ message: 'Logged out successfully' });
-}
-
 async function handleGetUser(req, res) {
-  const cookies = parseCookies(req.headers.cookie);
-  const sessionId = cookies.sessionId;
-  
-  if (!sessionId) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
-  const userId = sessionManager.getSession(sessionId);
-  if (!userId) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
   try {
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    // Get user from database using userId from JWT
+    if (!process.env.DATABASE_URL) {
+      return res.status(500).json({ message: 'Database not configured' });
     }
-    res.json({ user });
+    
+    const sql = neon(process.env.DATABASE_URL);
+    const users = await sql`SELECT * FROM users WHERE id = ${req.userId}`;
+    const user = users[0];
+    
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+    
+    res.json({ 
+      user: {
+        id: user.id,
+        phone: user.phone,
+        role: user.role,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email
+      }
+    });
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ message: 'Failed to fetch user' });
@@ -236,21 +228,19 @@ export default async function handler(req, res) {
           return await handleSendOtp(req, res);
         case 'verify-otp':
           return await handleVerifyOtp(req, res);
-        case 'logout':
-          return await handleLogout(req, res);
         default:
-          return res.status(400).json({ message: 'Invalid action. Supported actions: send-otp, verify-otp, logout' });
+          return res.status(400).json({ message: 'Invalid action. Supported actions: send-otp, verify-otp' });
       }
     }
     
-    // Handle GET request for user info (no query params needed)
+    // Handle GET request for user info (requires authentication)
     if (method === 'GET') {
-      return await handleGetUser(req, res);
+      return authenticateUser(req, res, () => handleGetUser(req, res));
     }
     
     res.status(405).json({ message: 'Method not allowed' });
   } catch (error) {
-    console.error('Auth error:', error);
+    console.error('Auth JWT error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
-}
+} 
