@@ -13,10 +13,13 @@
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
     {
       "source": "/api/(.*)",
-      "destination": "/api"
+      "destination": "/api/$1"
     },
     {
       "source": "/(.*)",
