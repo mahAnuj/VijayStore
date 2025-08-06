@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,7 @@ import Footer from "@/components/footer";
 export default function PhoneLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { verifyOtpMutation } = useAuth();
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -60,38 +62,25 @@ export default function PhoneLogin() {
     },
   });
 
-  // Verify OTP mutation
-  const verifyOtpMutation = useMutation({
-    mutationFn: async ({ phone, otpCode }: { phone: string; otpCode: string }) => {
-      const res = await apiRequest('POST', '/api/auth', { action: 'verify-otp', phoneNumber: phone, otp: otpCode });
-      return await res.json();
-    },
-    onSuccess: (data: any) => {
-      if (data.success) {
-        toast({
-          title: "Success",
-          description: "Phone verified successfully!",
-        });
-        // Redirect to home page
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1000);
-      } else {
-        toast({
-          title: "Error",
-          description: data.message || "Invalid OTP",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: (error) => {
+  // Verify OTP mutation (using the one from useAuth hook)
+  const handleVerifyOtpSuccess = (data: any) => {
+    if (data.success) {
+      toast({
+        title: "Success",
+        description: "Phone verified successfully!",
+      });
+      // Use proper navigation instead of window.location.href
+      setTimeout(() => {
+        setLocation('/');
+      }, 1000);
+    } else {
       toast({
         title: "Error",
-        description: "Failed to verify OTP. Please try again.",
+        description: data.message || "Invalid OTP",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
   const handleSendOtp = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +105,21 @@ export default function PhoneLogin() {
       });
       return;
     }
-    verifyOtpMutation.mutate({ phone: phoneNumber, otpCode: otp });
+    
+    // Use the verifyOtpMutation from useAuth hook
+    verifyOtpMutation.mutate(
+      { phone: phoneNumber, otpCode: otp },
+      {
+        onSuccess: handleVerifyOtpSuccess,
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: "Failed to verify OTP. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    );
   };
 
   const handleResendOtp = () => {

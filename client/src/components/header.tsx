@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Header() {
   const { toggleCart, getTotalItems } = useCart();
-  const { user, isAuthenticated, isAdmin } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   return (
     <header className="bg-white shadow-sm border-b-2 border-blue-600">
@@ -105,14 +105,7 @@ export default function Header() {
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={() => {
-                      fetch('/api/auth', { 
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'logout' })
-        })
-                        .then(() => window.location.reload());
-                    }}
+                    onClick={logout}
                     className="cursor-pointer"
                   >
                     <LogOut className="mr-2 h-4 w-4" />

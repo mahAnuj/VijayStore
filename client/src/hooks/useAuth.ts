@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
+import { useState, useEffect } from "react";
 
 // Token storage utilities
 const TOKEN_KEY = 'auth_token';
@@ -50,6 +51,30 @@ async function apiRequestWithAuth(method: string, url: string, data?: unknown): 
 export function useAuth() {
   const queryClient = useQueryClient();
   
+  // State to track if we have a token (for reactive query enabling)
+  const [hasToken, setHasToken] = useState<boolean>(false);
+  
+  // Check for token on mount and when localStorage changes
+  useEffect(() => {
+    const checkToken = () => {
+      const token = getStoredToken();
+      setHasToken(!!token);
+    };
+    
+    // Check on mount
+    checkToken();
+    
+    // Listen for storage changes (in case token is set/removed in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === TOKEN_KEY) {
+        checkToken();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+  
   // Get user info using JWT token
   const { data: response, isLoading, error } = useQuery<{user: User}>({
     queryKey: ["/api/auth"],
@@ -58,7 +83,7 @@ export function useAuth() {
       return await res.json();
     },
     retry: false,
-    enabled: !!getStoredToken(), // Only run if token exists
+    enabled: hasToken, // Use reactive state instead of static check
   });
 
   const user = response?.user;
@@ -86,6 +111,8 @@ export function useAuth() {
       
       if (data.success && data.token) {
         setStoredToken(data.token);
+        // Update the token state to enable the query
+        setHasToken(true);
         // Invalidate and refetch user data
         queryClient.invalidateQueries({ queryKey: ["/api/auth"] });
       }
@@ -97,6 +124,7 @@ export function useAuth() {
   // Logout function
   const logout = () => {
     removeStoredToken();
+    setHasToken(false); // Update state to disable the query
     queryClient.clear(); // Clear all cached data
     window.location.reload(); // Refresh page
   };

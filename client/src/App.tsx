@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { DebugAuth } from "@/components/debug-auth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import PhoneLogin from "@/pages/phone-login";
@@ -19,22 +20,26 @@ function Router() {
 
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <>
-          <Route path="/" component={Landing} />
-          <Route path="/login" component={PhoneLogin} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/profile" component={Profile} />
-        </>
-      )}
+      {/* Public routes - always accessible */}
+      <Route path="/login" component={PhoneLogin} />
       <Route path="/products" component={Products} />
       <Route path="/products/:category" component={Products} />
       <Route path="/product/:id" component={ProductDetail} />
-      <Route path="/checkout" component={Checkout} />
-      {isAdmin && <Route path="/admin" component={Admin} />}
+      
+      {/* Conditional routes based on authentication */}
+      {isAuthenticated ? (
+        <>
+          <Route path="/" component={Home} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/checkout" component={Checkout} />
+          {isAdmin && <Route path="/admin" component={Admin} />}
+        </>
+      ) : (
+        <>
+          <Route path="/" component={Landing} />
+        </>
+      )}
+      
       <Route component={NotFound} />
     </Switch>
   );
@@ -46,6 +51,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <DebugAuth />
       </TooltipProvider>
     </QueryClientProvider>
   );
