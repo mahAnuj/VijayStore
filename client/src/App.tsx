@@ -14,6 +14,7 @@ import ProductDetail from "@/pages/product-detail";
 import Checkout from "@/pages/checkout";
 import Profile from "@/pages/profile";
 import Admin from "@/pages/admin";
+import { Analytics } from "@vercel/analytics/next"
 
 function Router() {
   const { isAuthenticated, isLoading, isAdmin } = useAuth();
@@ -52,6 +53,7 @@ function App() {
         <Toaster />
         <Router />
         <DebugAuth />
+        <Analytics/>
       </TooltipProvider>
     </QueryClientProvider>
   );
